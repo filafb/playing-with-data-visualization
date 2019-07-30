@@ -1,15 +1,19 @@
-import App from './App';
+import App from '../client/App';
 import React from 'react';
 import { StaticRouter } from 'react-router-dom';
 import express from 'express';
 import { renderToString } from 'react-dom/server';
+import api from './api'
 
 const assets = require(process.env.RAZZLE_ASSETS_MANIFEST);
 
 const server = express();
 server
   .disable('x-powered-by')
+  .use(express.json())
+  .use(express.urlencoded({extended: true}))
   .use(express.static(process.env.RAZZLE_PUBLIC_DIR))
+  .use('/api', api)
   .get('/*', (req, res) => {
     const context = {};
     const markup = renderToString(
