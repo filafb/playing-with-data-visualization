@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react'
-import { scaleLinear, min, max, axisBottom, axisLeft, select, area, nest, map, stack, extent, scaleOrdinal } from 'd3'
+import { scaleLinear, min, max, axisBottom, axisLeft, select, area, nest, map, stack, extent, scaleOrdinal, scaleTime, timeFormat } from 'd3'
 
 var data = [
   {
@@ -90,8 +90,15 @@ export default function StackedArea() {
       },0)
     })(sumstat)
 
-    const x = scaleOrdinal().domain(scale).range([0, width/2, width])
-    const xAxisCall = axisBottom(x)
+    const x = scaleTime().domain([min(scale, d => {
+      return new Date(d)
+    }), max(scale, d => {
+      return new Date(d)
+    })]).range([0, width])
+    const xAxisCall = axisBottom(x).ticks(3).tickFormat(d => {
+      const formatDate = timeFormat("%b-%Y")
+      return formatDate(d)
+    })
     const xAxis = svg.append('g').attr("class", "x-axis").attr("transform", `translate(0,${height})`)
     xAxis.call(xAxisCall)
 
@@ -110,7 +117,7 @@ export default function StackedArea() {
       return color(mygroups[i])
     }).attr("d", area()
     .x((d) => {
-      return x(d.data.key)
+      return x(new Date(d.data.key))
     })
     .y0( d => y(d[0]) )
     .y1(d => y(d[1])))
@@ -118,7 +125,7 @@ export default function StackedArea() {
     //svg.append('path').data([stackedData]).attr("class", "area").attr("fill", "lightblue").attr("d", areaG)
 
 
-  })
+  }, [data])
 
   return (
     <svg ref={canvas} />
