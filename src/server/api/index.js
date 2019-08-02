@@ -15,8 +15,15 @@ router.post('/upload', upload.single('file'), (req, res, next) => {
     let newEntry = {}
     let arrSingleEntry = fileToArray[i].split(',')
     for(let j = 0; j < header.length; j++) {
+
       let value = arrSingleEntry[j] ? arrSingleEntry[j].replace('\r','') : null
-      newEntry[header[j]] = onlyDigits.test(value) ? Number(value) : value
+      if(header[j] === 'date') {
+        const [month, year] = value.split('/')
+        newEntry[header[j]] = new Date(year, month - 1 )
+      } else{
+        newEntry[header[j]] = onlyDigits.test(value) ? Number(value) : value
+
+      }
     }
     fileToJSON.push(newEntry)
   }
