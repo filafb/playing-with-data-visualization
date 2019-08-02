@@ -28,6 +28,7 @@ var data1 = [
 export default function D3() {
   const [ flag, setData ] = useState(true)
   const canvas = useRef(null)
+  const gTag = useRef(null)
 
   useEffect(() => {
 
@@ -41,23 +42,26 @@ export default function D3() {
       bottom: 50,
       left: 50
     }
-
-    const g = svg.append("g")
-    .attr("transform", `translate(${margin.left},${margin.top})`)
-
     const width = +svg.attr('width')- margin.left - margin.right;
     const height = +svg.attr('height') - margin.top - margin.bottom
 
-    const x = d3.scaleLinear()
-      .domain([d3.min(data, (d) => d.gpa) /1.05, d3.max(data, (d) => d.gpa) * 1.05]).range([0, width])
+    // const g = svg.append("g")
+    // .attr("transform", `translate(${margin.left},${margin.top})`)
 
+    const g = d3.select(gTag.current)
+
+    const t = d3.transition().duration(750)
+
+    const x = d3.scaleLinear().domain([d3.min(data, (d) => d.gpa) /1.05, d3.max(data, (d) => d.gpa) * 1.05])
+      .range([0, width])
 
 
     const y = d3.scaleLinear()
       .domain([d3.min(data, (d) => d.height) / 1.05, d3.max(data, (d) => d.height) * 1.05]).range([height, 0])
 
-    const xAxisCall = d3.axisBottom(x)
-    const xAxis = g.append("g")
+
+      const xAxisCall = d3.axisBottom(x)
+      const xAxis = g.append("g")
       .attr("class", "x-axis")
       .attr("transform", `translate(${0},${height})`)
 
@@ -70,6 +74,7 @@ export default function D3() {
       .attr("class", "axis-title")
       .attr("transform", `translate(${width}, 0)`)
       .attr("y", -6)
+      .attr("fill", "blue")
       .text("Grade Point Average")
 
     yAxis.append("text")
@@ -78,9 +83,14 @@ export default function D3() {
       .attr("y", 16)
       .text("Height / Centimeters")
 
-    const t = d3.transition().duration(750)
 
-    const circles = svg.selectAll("circle").data(data)
+
+    g.selectAll(".x-axis").transition(t).call(xAxisCall)
+    g.selectAll(".y-axis").transition(t).call(yAxisCall)
+
+
+    const circles = g.selectAll("circle").data(data)
+
     circles.exit().transition(t).attr("fill-opacity", 0.1).attr("cy", y(0)).remove()
 
     circles.transition(t)
@@ -90,6 +100,7 @@ export default function D3() {
 
     circles.enter()
     .append("circle")
+    .on('click', (d) => console.log(d))
     .attr("cx", (d) => x(d.gpa))
     .attr("cy", (d) => y(d.height))
     .attr("r", 5)
@@ -99,13 +110,12 @@ export default function D3() {
     .attr("fill-opacity", 1)
     .attr("cy", (d) => y(d.height))
 
-      xAxis.transition(t).call(xAxisCall);
-      yAxis.transition(t).call(yAxisCall)
-
   }, [flag])
   return (
     <React.Fragment>
-      <svg height="500" width="800" ref={canvas} />
+      <svg height="500" width="800" ref={canvas}>
+        <g height="500" width="800" ref={gTag} transform="translate(50,10)" />
+      </svg>
       <button onClick={() => setData(!flag)}>change data</button>
     </React.Fragment>
   )
